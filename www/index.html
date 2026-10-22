@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#282347">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'">
+  <title>Wimeloo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="minigames.css">
+  <link rel="stylesheet" href="polish.css">
+  <link rel="stylesheet" href="dev.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="world" aria-label="Isometrische Sternenwelt. Tippe auf den Boden, damit deine Figur dorthin läuft."></canvas>
+    <header class="topbar">
+      <div class="brand"><span id="brand-icon"></span><div>Wimeloo<small>UNSERE KLEINE WELT</small></div></div>
+      <button id="chapter-button" class="chapter-pill" aria-label="Unsere Geschichte öffnen"><span id="chapter-icon"></span><span id="chapter-label">Ein kleines Wunder</span></button>
+      <div class="top-actions"><button id="sound-button" class="icon-btn" aria-label="Ton an oder aus"></button><button id="parent-button" class="icon-btn" aria-label="Elternbereich"></button></div>
+    </header>
+    <nav id="characters" class="character-switch" aria-label="Spielfigur auswählen"></nav>
+    <aside id="world-hint" class="world-hint"><span id="hint-icon"></span><span>Tippe auf einen Platz.<br>Ich laufe zu dir!</span></aside>
+    <button id="daily-button" class="daily-pill" aria-label="Unsere Tagesideen"></button>
+    <div id="floating-actions" aria-label="Orte in der Welt"></div>
+    <nav id="world-zoom" class="world-zoom" aria-label="Ansicht vergrößern"><button id="zoom-in" aria-label="Näher heranzoomen"></button><button id="zoom-out" aria-label="Weiter herauszoomen"></button><button id="zoom-reset" class="zoom-reset" aria-label="Ganze Welt zeigen"></button></nav>
+    <section id="message" class="message-bubble" aria-live="polite"><div class="message-icon"></div><p id="message-text">Tippe auf den Boden oder auf einen leuchtenden Gegenstand.</p><button id="repeat-button" class="icon-btn" aria-label="Hinweis noch einmal hören"></button></section>
+    <nav class="bottom-nav" aria-label="Spielmöglichkeiten">
+      <button id="home-button" class="nav-item"><span></span><b>Zuhause</b></button>
+      <button id="care-button" class="nav-item"><span></span><b>Baby</b></button>
+      <button id="games-button" class="nav-item"><span></span><b>Spielen</b></button>
+      <button id="album-button" class="nav-item"><span></span><b>Album</b></button>
+      <button id="pause-button" class="nav-item"><span></span><b>Pause</b></button>
+    </nav>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <div id="overlay" class="overlay" hidden></div>
+    <div id="mini-host" class="mini-host" hidden></div>
+    <div id="orientation" class="orientation"><span>↻</span><h2>Einmal quer drehen</h2><p>So hat eure Sternenwelt mehr Platz.</p><button id="portrait-continue">Trotzdem spielen</button></div>
+  </main>
+  <script src="art.js"></script>
+  <script src="state.js"></script>
+  <script src="world.js"></script>
+  <script src="minigames.js"></script>
+  <script src="voices.js"></script>
+  <script src="audio.js"></script>
+  <script src="care.js"></script>
+  <script src="app.js"></script>
+  <script src="dev.js"></script>
+</body>
+</html>

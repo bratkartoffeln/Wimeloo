@@ -6,22 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  bootstrap:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate bootstrap
-        run: |
-          test -f README.md
-          test -f AGENTS.md
-          if test -f www/app.js; then
-            node --check www/app.js
-            node --check www/dev.js
-          else
-            echo 'Full application import pending; app tests deferred.'
-          fi
-  app-tests:
-    if: ${{ hashFiles('www/app.js') != '' }}
+  source-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,8 +14,26 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - run: npm test
       - run: npx playwright install --with-deps chromium
+      - run: npm test
       - run: npm run test:world
       - run: npm run test:minigames
       - run: npm run test:care
+      - name: No secrets in tracked files
+        run: |
+          if git ls-files | grep -E '(^toolchain/|(^|/)build-state/|\.(p12|jks|keystore|password)$)'; then
+            echo 'Private signing files must not be committed'; exit 1
+          fi
+  android-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 android/fetch-toolchain.py
+      - run: python3 android/build.py --check-native

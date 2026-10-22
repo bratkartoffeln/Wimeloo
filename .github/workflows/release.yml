@@ -1,19 +1,22 @@
-name: Release Wimeloo APK
+name: Publish Wimeloo first APK release
 on:
   workflow_dispatch:
   push:
     branches: [main]
 permissions:
   contents: write
+concurrency:
+  group: wimeloo-release-v1.2.0
+  cancel-in-progress: false
 jobs:
-  release:
-    if: ${{ hashFiles('www/app.js') != '' }}
+  publish-verified-apk:
     runs-on: ubuntu-latest
-    env:
-      WIMELOO_KEYSTORE_B64: ${{ secrets.WIMELOO_KEYSTORE_B64 }}
-      WIMELOO_KEYSTORE_PASSWORD: ${{ secrets.WIMELOO_KEYSTORE_PASSWORD }}
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -21,34 +24,45 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check original signing key secrets
+      - name: Install UI test environment
         run: |
-          test -n "$WIMELOO_KEYSTORE_B64" || { echo 'Original signing key secret missing'; exit 1; }
-          test -n "$WIMELOO_KEYSTORE_PASSWORD" || { echo 'Original signing password secret missing'; exit 1; }
-      - name: Install original signing material privately
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test game, state, touch controls and dev mode
+        run: |
+          npm test
+          npm run test:world
+          npm run test:minigames
+          npm run test:care
+      - name: Reconstruct APK and compare complete game sources
+        run: python3 tools/reassemble_apk.py
+      - name: Download official Android tools (pinned checksums)
+        run: python3 android/fetch-toolchain.py
+      - name: Verify Android APK signing, version and certificate
         shell: bash
         run: |
-          umask 077
-          mkdir -p toolchain/build-state
-          printf '%s' "$WIMELOO_KEYSTORE_B64" | base64 -d > toolchain/build-state/sternenbaby-release.p12
-          printf '%s\n' "$WIMELOO_KEYSTORE_PASSWORD" > toolchain/build-state/sternenbaby-release.password
-      - run: python3 android/fetch-toolchain.py
-      - run: python3 android/build.py
-      - name: Check expected signer fingerprint
-        run: |
-          grep -qi '25db9b0f7c00d99f4d9d57ea7aceb5c26392b86ad81c5f34e01185df220fa951' android/build/outputs/signature-verification.txt
-      - uses: actions/upload-artifact@v4
+          set -euo pipefail
+          java -jar toolchain/build-tools/35.0.0/lib/apksigner.jar verify --verbose --print-certs dist/Wimeloo-1.2.0.apk | tee dist/signature-verification.txt
+          python3 tools/verify_signer.py dist/signature-verification.txt
+          toolchain/build-tools/35.0.0/aapt2 dump badging dist/Wimeloo-1.2.0.apk | tee dist/badging.txt
+          grep -q "package: name='de.sternenbaby.app' versionCode='4' versionName='1.2.0'" dist/badging.txt
+          grep -q "application-label:'Wimeloo'" dist/badging.txt
+          toolchain/build-tools/35.0.0/zipalign -c -P 16 4 dist/Wimeloo-1.2.0.apk
+      - name: Upload validated APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: Wimeloo-APK
-          path: android/build/outputs/Wimeloo-*.apk
-          if-no-files-found: error
-      - name: Create first release after full import
+          name: Wimeloo-1.2.0
+          path: dist/Wimeloo-1.2.0.apk
+      - name: Create first public GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          VERSION=1.2.0
-          if gh release view "v$VERSION" >/dev/null 2>&1; then exit 0; fi
-          gh release create "v$VERSION" android/build/outputs/Wimeloo-"$VERSION".apk --target "$GITHUB_SHA" --title "Wimeloo v$VERSION" --notes "Erstes Wimeloo APK-Release. Signiert mit dem bisherigen Sternenbaby-Schlüssel."
-      - name: Remove signing files
-        if: always()
-        run: rm -rf toolchain/build-state
+          set -euo pipefail
+          if gh release view v1.2.0 >/dev/null 2>&1; then
+            echo 'v1.2.0 already exists, no overwrite'; exit 0
+          fi
+          gh release create v1.2.0 dist/Wimeloo-1.2.0.apk \
+            --target "$GITHUB_SHA" \
+            --title 'Wimeloo 1.2.0' \
+            --notes 'Erstes Wimeloo-Release. Offline-Spielwelt mit sechs Lernspielen und optionalem lokalem Browser-Entwicklermodus. Update-kompatibel zu Sternenbaby 1.1.0 dank identischer Android-Paketkennung und Signierzertifikat.'

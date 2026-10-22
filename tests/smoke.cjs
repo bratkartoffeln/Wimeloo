@@ -1,0 +1,35 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const projectRoot=path.resolve(__dirname,'..');
+const appUrl=pathToFileURL(path.join(projectRoot,'www','index.html')).href;
+const fs=require('fs');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.BROWSER_EXECUTABLE || undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor:1});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(appUrl);await page.waitForTimeout(500);
+ await page.screenshot({path:path.join(__dirname,'welcome.png')});
+ const lines=await page.evaluate(()=>[...new Set([...AppVoiceLines,...Minigames.voiceLines])]);fs.writeFileSync(path.join(__dirname,'voice-lines.json'),JSON.stringify(lines,null,2));
+ await page.getByText('Los geht’s!',{exact:true}).click();
+ await page.getByRole('button',{name:'Wir machen uns bereit',exact:true}).click();
+ await page.getByRole('button',{name:'Weiter zur Geburt',exact:true}).click();
+ await page.getByRole('button',{name:'Das Baby begrüßen',exact:true}).click();
+ await page.getByRole('button',{name:'Luna',exact:true}).click();
+ await page.getByRole('button',{name:'Ab nach Hause',exact:true}).click();
+ await page.waitForTimeout(300);await page.screenshot({path:path.join(__dirname,'world.png')});
+ const target=await page.evaluate(()=>Sternenbaby.world.project(11,9));
+ await page.mouse.click(target.x,target.y);await page.waitForTimeout(2500);
+ console.log('walk',await page.evaluate(()=>Sternenbaby.world.snapshot()));
+ await page.evaluate(()=>Sternenbaby.showCare());await page.locator('[data-care="feed"]').click();
+ for(const txt of ['Hände waschen','Milch geben','Kuscheln'])await page.getByRole('button',{name:txt,exact:true}).click();
+ await page.screenshot({path:path.join(__dirname,'care.png')});
+ await page.getByRole('button',{name:'Das war schön!',exact:true}).click();
+ await page.evaluate(()=>Sternenbaby.showAlbum());await page.screenshot({path:path.join(__dirname,'album.png')});
+ await page.getByRole('button',{name:'Zurück zur Welt',exact:true}).last().click();
+ await page.evaluate(()=>Sternenbaby.startGame('counting'));await page.screenshot({path:path.join(__dirname,'counting.png')});
+ console.log('state',await page.evaluate(()=>GameState.data));
+ console.log('voiceLines',lines.length,'errors',errors);
+ for(const [w,h]of [[1024,600],[800,480]]){await page.setViewportSize({width:w,height:h});await page.waitForTimeout(150);await page.screenshot({path:path.join(__dirname,`counting-${w}.png`)});}
+ await browser.close();if(errors.length)process.exitCode=1;
+})().catch(e=>{console.error(e);process.exit(1);});

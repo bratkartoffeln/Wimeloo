@@ -1,35 +1,35 @@
-# Wimeloo — isometrische Lernspielwelt
+# Wimeloo · Isometrische Spielwelt für Kinder
 
-Wimeloo ist der neue Name von **Sternenbaby**, einem Offline-Android-Tabletspiel mit isometrischer Touch-Welt, Babyfürsorge, Musik, Geschichten und sechs Lernminispielen.
+**Version 1.2.0 · Offline-Android-Tabletspiel und lokaler Browser-Entwicklermodus**
 
-## Projektstand
+Wimeloo ist der neue Name der bisherigen App „Sternenbaby“. Drei Freundinnen begleiten die Geburt eines Babys und erleben gemeinsam Pflegehandlungen, Musik, Gestaltung und sechs Lernminispiele in einer isometrischen, per Touch begehbaren Welt. Deutschsprachige Audioanleitungen sind offline enthalten. Keine Registrierung, Werbung oder Internetberechtigung.
 
-Dieses Repository wird für den Import des vollständigen Quellcodes vorbereitet. Der vorbereitete Workflow darf **kein** Release erzeugen, solange der vollständige App-Quellstand und die ursprüngliche private Signieridentität nicht verfügbar sind.
+## Schnellstart
 
-## Browser-Dev-Modus (Quellcodepaket 1.2.0)
+- **Android:** Release-APK `Wimeloo-1.2.0.apk` auf Android 8+ installieren, über der bisherigen Version (nicht vorher deinstallieren).
+- **Browser:** `python3 -m http.server 8080 --directory www` und dann `http://localhost:8080/` öffnen.
+- **Browser-Dev-Modus:** `http://localhost:8080/?dev=1` oder `Ctrl+Shift+D`. Siehe [Dev-Modus](docs/DEVELOPER_MODE.md).
+- **Tests:** `npm test` und die spezialisierten `npm run test:*`-Skripte.
+- **Android bauen:** `python3 android/fetch-toolchain.py && python3 android/build.py`. Für aktualisierbare APK ist der **ursprüngliche** Signierschlüssel nötig.
 
-Nach Übernahme des kompletten `www/`-Verzeichnisses:
+## Versions- und Spielstandkompatibilität
 
-```sh
-python3 -m http.server 8080 --directory www
-```
+**Der sichtbare App-Name lautet Wimeloo, die interne Android-Kennung bleibt bewusst `de.sternenbaby.app`.** Ebenso bleiben die `sternenbaby.state.*`-Schlüssel, die APK-WebView-Origin und die Signaturidentität unverändert. Das verhindert Datenverlust und ermöglicht die Installation als Update. Android `versionCode` steigt von 3 auf 4.
 
-Browser: `http://localhost:8080/?dev=1`. Umschalten mit `Ctrl+Shift+D`. Das Diagnosepanel zeigt Raster, Kameraposition, Zoom, Touch-Ziele, laufende Figuren und den Kapitelstatus; es ist nicht in der Android-App aktiv. Entwickleransicht arbeitet ohne Cloudverbindung.
+## Repository und Releases
 
-## Android-Kompatibilität
+- Änderungen erfolgen auf Featurebranches und via Pull Requests. `main` bleibt geschützt.
+- `verify.yml` testet Quellcode, Speicherformat, Minispiele und Android-Wrapper.
+- `release.yml` überprüft bei Push auf `main` das erste signierte Übergangsrelease `v1.2.0` aus den versionierten `.release-parts` und veröffentlicht es nach **vollständigem Asset-Abgleich, SHA-256-Prüfung, offizieller APK-Signaturprüfung und Zertifikatsvergleich**.
+- **Der private Signierschlüssel liegt nicht auf GitHub.** Für die erste Veröffentlichung ist ein mit dem ursprünglichen Zertifikat signiertes Artefakt hinterlegt. Der Release-Workflow signiert nicht selbst, sondern verifiziert und veröffentlicht ausschließlich dieses Artefakt.
+- `build-signed.yml` ist der Workflow für spätere Versionen. Dazu müssen die beiden Secrets `WIMELOO_KEYSTORE_B64` (PKCS12-Datei in Base64) und `WIMELOO_KEYSTORE_PASSWORD` (Keystore-Passwort) ausschließlich im GitHub-Environment `android-signing` hinterlegt werden. Nie Schlüssel oder Passwort in das öffentliche Repository, Pull Requests, Issues oder Logs übertragen.
 
-- Sichtbarer Name: **Wimeloo**
-- Interne Paketkennung bleibt **`de.sternenbaby.app`**, damit das Update alte Installationen erkennt
-- Ursprung und Speicher-Keys bleiben unverändert
-- Version `1.2.0`, `versionCode 4`
-- APK muss mit **dem ursprünglichen** Signaturzertifikat erzeugt werden
+### Hinweis zum ersten Übergangsrelease
 
-## Veröffentlichung
+Version 1.2.0 verwendet die bewährte, bereits signierte Android-Hülle der Vorversion und enthält **die vollständigen neuen Wimeloo-Webassets**. Android-Manifest und App-Name wurden für Wimeloo angepasst. Für spätere Releases ist der reproduzierbare Android-Quellbuild mit dem Originalschlüssel vorgesehen. Die Prüfskripte verhindern eine Veröffentlichung mit einer anderen Signatur.
 
-Die vorgesehenen GitHub Actions bauen nach dem Import der kompletten App den Quellcode und eine signierte APK. Die ursprüngliche `sternenbaby-release.p12` und das Passwort sind ausschließlich als GitHub Actions Secrets `WIMELOO_KEYSTORE_B64` (base64) und `WIMELOO_KEYSTORE_PASSWORD` bereitzustellen. Keinesfalls die Schlüsseldatei committen oder als Release Asset veröffentlichen.
+## Datenschutz und Inhalte
 
-Der Workflow prüft das erwartete öffentliche Zertifikat `25db9b0f7c00d99f4d9d57ea7aceb5c26392b86ad81c5f34e01185df220fa951`. Ohne identischen Signierer wird kein APK-Release veröffentlicht.
+Alle Sprachanweisungen sind in `www/audio/` lokal gebündelt; die App kommuniziert nicht mit WevoLabs oder anderen Servern. Die originale Aufnahmequelle wird für Entwicklung und Herkunft dokumentiert, enthält aber keine Signierschlüssel. Prüfe vor einer **öffentlichen** Weiterverbreitung fremder Musik, Markennamen und Figurengestaltungen sorgfältig deren Nutzungserlaubnis.
 
-Hintergrund: [Entwicklermodus](docs/DEVELOPER_MODE.md) · [Agentenanweisungen](AGENTS.md).
-
-**Hinweis:** Der vollständige Quellcode (einschließlich Offline-Sprachdateien) liegt derzeit noch nicht in diesem Repository. Die vorbereitete CI aktiviert sich erst nach dem Import.
+Siehe [Android-Hülle](android/ANDROID.md), [Agenten-Anweisungen](AGENTS.md), [Erweiterungen](ERWEITERUNGEN.md), [Sprachnachweise](VOICE-CREDITS.md).

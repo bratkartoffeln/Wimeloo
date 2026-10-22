@@ -1,0 +1,45 @@
+name: Build future signed Android release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  signed-build:
+    runs-on: ubuntu-latest
+    environment: android-signing
+    env:
+      WIMELOO_KEYSTORE_B64: ${{ secrets.WIMELOO_KEYSTORE_B64 }}
+      WIMELOO_KEYSTORE_PASSWORD: ${{ secrets.WIMELOO_KEYSTORE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check signing secrets are present
+        run: |
+          test -n "$WIMELOO_KEYSTORE_B64" && test -n "$WIMELOO_KEYSTORE_PASSWORD" || { echo 'Android signing secrets not configured'; exit 1; }
+      - name: Install private signing identity
+        shell: bash
+        run: |
+          umask 077
+          mkdir -p toolchain/build-state
+          printf '%s' "$WIMELOO_KEYSTORE_B64" | base64 -d > toolchain/build-state/sternenbaby-release.p12
+          printf '%s\n' "$WIMELOO_KEYSTORE_PASSWORD" > toolchain/build-state/sternenbaby-release.password
+      - name: Build native Android APK from tracked sources
+        run: |
+          python3 android/fetch-toolchain.py
+          python3 android/build.py
+      - name: Check signing identity
+        run: python3 tools/verify_signer.py android/build/outputs/signature-verification.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Signed-Wimeloo-APK
+          path: android/build/outputs/Wimeloo-*.apk
+          if-no-files-found: error
+      - name: Remove private credentials
+        if: always()
+        run: rm -rf toolchain/build-state

@@ -1,0 +1,11 @@
+/* Non-invasive, local-only tools. Layer cannot eat taps meant for the world. */
+.wimeloo-dev-layer{position:fixed;z-index:70;pointer-events:none;inset:auto;max-width:none;max-height:none}
+.wimeloo-dev{position:fixed;right:12px;top:72px;z-index:110;width:min(320px,43vw);max-height:calc(100vh - 85px);overflow:auto;background:rgba(13,19,36,.95);color:#e8fff8;border:1px solid #5dead5;border-radius:14px;box-shadow:0 16px 35px #0007;font:12px/1.35 ui-monospace,monospace;padding:10px;touch-action:pan-y}
+.wimeloo-dev header{display:flex;justify-content:space-between;gap:6px;align-items:center;color:#85ffe0}
+.wimeloo-dev header span{font-size:10px;color:#b1c8c8}
+.wimeloo-dev pre{font-size:10px;max-height:29vh;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#111c31;border-radius:8px;padding:8px}
+.wimeloo-dev .wm-dev-buttons{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.wimeloo-dev button{border:1px solid #446876;border-radius:8px;background:#283a54;color:white;min-height:34px;padding:5px;font:12px system-ui,sans-serif;cursor:pointer}
+.wimeloo-dev button:focus-visible{outline:2px solid #ffdc7e}
+.wimeloo-dev small{display:block;margin-top:8px;color:#a6b4bd}
+@media(max-width:600px){.wimeloo-dev{width:min(290px,75vw);top:58px}}

@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+const html=fs.readFileSync('www/index.html','utf8');const code=fs.readFileSync('www/dev.js','utf8');
+assert.match(html,/<script src="dev.js"><\/script>/);
+assert.match(html,/Wimeloo/);
+assert.match(code,/AndroidBridge/);
+assert.match(code,/'dev'\) === '1'/);
+assert.match(code,/e\.ctrlKey&&e\.shiftKey/);
+const css=fs.readFileSync('www/dev.css','utf8');assert.match(css,/pointer-events:none/);
+assert.doesNotMatch(code,/fetch\(|XMLHttpRequest|sendBeacon/);
+new vm.Script(code);console.log('Wimeloo developer mode checks: OK');
