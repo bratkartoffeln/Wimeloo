@@ -1,0 +1,9 @@
+/toolchain/
+/android/build/
+/node_modules/
+*.p12
+*.jks
+*.keystore
+*.password
+*.env
+__pycache__/
