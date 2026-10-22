@@ -1,0 +1,54 @@
+name: Release Wimeloo APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  release:
+    if: ${{ hashFiles('www/app.js') != '' }}
+    runs-on: ubuntu-latest
+    env:
+      WIMELOO_KEYSTORE_B64: ${{ secrets.WIMELOO_KEYSTORE_B64 }}
+      WIMELOO_KEYSTORE_PASSWORD: ${{ secrets.WIMELOO_KEYSTORE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check original signing key secrets
+        run: |
+          test -n "$WIMELOO_KEYSTORE_B64" || { echo 'Original signing key secret missing'; exit 1; }
+          test -n "$WIMELOO_KEYSTORE_PASSWORD" || { echo 'Original signing password secret missing'; exit 1; }
+      - name: Install original signing material privately
+        shell: bash
+        run: |
+          umask 077
+          mkdir -p toolchain/build-state
+          printf '%s' "$WIMELOO_KEYSTORE_B64" | base64 -d > toolchain/build-state/sternenbaby-release.p12
+          printf '%s\n' "$WIMELOO_KEYSTORE_PASSWORD" > toolchain/build-state/sternenbaby-release.password
+      - run: python3 android/fetch-toolchain.py
+      - run: python3 android/build.py
+      - name: Check expected signer fingerprint
+        run: |
+          grep -qi '25db9b0f7c00d99f4d9d57ea7aceb5c26392b86ad81c5f34e01185df220fa951' android/build/outputs/signature-verification.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wimeloo-APK
+          path: android/build/outputs/Wimeloo-*.apk
+          if-no-files-found: error
+      - name: Create first release after full import
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=1.2.0
+          if gh release view "v$VERSION" >/dev/null 2>&1; then exit 0; fi
+          gh release create "v$VERSION" android/build/outputs/Wimeloo-"$VERSION".apk --target "$GITHUB_SHA" --title "Wimeloo v$VERSION" --notes "Erstes Wimeloo APK-Release. Signiert mit dem bisherigen Sternenbaby-Schlüssel."
+      - name: Remove signing files
+        if: always()
+        run: rm -rf toolchain/build-state

@@ -1,0 +1,36 @@
+name: Verify Wimeloo
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate bootstrap
+        run: |
+          test -f README.md
+          test -f AGENTS.md
+          if test -f www/app.js; then
+            node --check www/app.js
+            node --check www/dev.js
+          else
+            echo 'Full application import pending; app tests deferred.'
+          fi
+  app-tests:
+    if: ${{ hashFiles('www/app.js') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:world
+      - run: npm run test:minigames
+      - run: npm run test:care
