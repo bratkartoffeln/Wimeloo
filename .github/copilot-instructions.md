@@ -1,0 +1,1 @@
+Follow AGENTS.md. Keep child-friendly UI accessible without reading, no network dependencies, and retain Android package ID and existing localStorage keys across renamed versions. Debug mode must be browser-only. Never upload keystore/password.

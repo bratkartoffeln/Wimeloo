@@ -1,0 +1,24 @@
+{
+  "name": "wimeloo",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Offline isometric Android game for children, with local browser developer mode",
+  "scripts": {
+    "test": "node tests/navigation.cjs && node tests/state-v1-release.cjs && node tests/state-creations-v11.cjs && node tests/dev-mode.cjs",
+    "test:ui": "node tests/release-v11.cjs",
+    "test:audio": "node tests/audio-pack.cjs --require-ffprobe",
+    "build:android": "python3 android/build.py",
+    "test:state": "node tests/state-v1-release.cjs",
+    "test:release": "node tests/release-v11.cjs",
+    "test:minigames": "node tests/minigames-v11.cjs",
+    "test:world": "node tests/world-touch-v11.cjs",
+    "test:care": "node tests/care-v11.cjs && node tests/care-hotspots-v11.cjs",
+    "test:art": "node tests/art-v11.cjs",
+    "test:creations": "node tests/state-creations-v11.cjs",
+    "test:mix": "node tests/audio-mix-v1.cjs",
+    "test:dev": "node tests/dev-mode.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

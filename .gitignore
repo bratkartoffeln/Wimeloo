@@ -1,9 +1,19 @@
+# Private signing keys, generated builds, and downloaded Android SDK
 /toolchain/
 /android/build/
-/node_modules/
 *.p12
 *.jks
 *.keystore
 *.password
 *.env
+*.env.*
+!*.env.example
+/node_modules/
+/.venv/
 __pycache__/
+*.py[cod]
+.DS_Store
+
+# Local assembled release and temporary transfer files
+/dist/
+/.transfer/
