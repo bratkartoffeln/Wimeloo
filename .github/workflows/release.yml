@@ -42,12 +42,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          java -jar toolchain/build-tools/35.0.0/lib/apksigner.jar verify --verbose --print-certs dist/Wimeloo-1.2.0.apk | tee dist/signature-verification.txt
+          java -jar ../toolchain/build-tools/35.0.0/lib/apksigner.jar verify --verbose --print-certs dist/Wimeloo-1.2.0.apk | tee dist/signature-verification.txt
           python3 tools/verify_signer.py dist/signature-verification.txt
-          toolchain/build-tools/35.0.0/aapt2 dump badging dist/Wimeloo-1.2.0.apk | tee dist/badging.txt
+          ../toolchain/build-tools/35.0.0/aapt2 dump badging dist/Wimeloo-1.2.0.apk | tee dist/badging.txt
           grep -q "package: name='de.sternenbaby.app' versionCode='4' versionName='1.2.0'" dist/badging.txt
           grep -q "application-label:'Wimeloo'" dist/badging.txt
-          toolchain/build-tools/35.0.0/zipalign -c -P 16 4 dist/Wimeloo-1.2.0.apk
+          ../toolchain/build-tools/35.0.0/zipalign -c -P 16 4 dist/Wimeloo-1.2.0.apk
       - name: Upload validated APK artifact
         uses: actions/upload-artifact@v4
         with:
